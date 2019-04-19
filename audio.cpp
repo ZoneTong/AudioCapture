@@ -2,6 +2,9 @@
 
 #include <QDebug>
 
+#define REFTIMES_PER_SEC  10000000
+#define REFTIMES_PER_MILLISEC  10000
+
 #define MAX_AUDIO_FRAME_SIZE 192000
 #define SAFE_RELEASE(punk) \
             if((NULL != punk)) \
@@ -64,6 +67,9 @@ void Audio::initAudio()
    }
    //wBitsPerSample是采样深度(位深)  nChannels是音频通道数 _FrameSize一个采样的大小(字节)
    _FrameSize = (_MixFormat->wBitsPerSample / 8) * _MixFormat->nChannels;
+
+   qDebug() << QString("audio _MixFormat wBitsPerSample: %1, nChannels: %2, nSamplesPerSec: %3, nBlockAlign: %4, FrameSize: %5").arg(_MixFormat->wBitsPerSample)
+               .arg(_MixFormat->nChannels).arg(_MixFormat->nSamplesPerSec).arg(_MixFormat->nBlockAlign).arg(_FrameSize);
    //初始化音频引擎
    /*
     *AUDCLNT_SHAREMODE_SHARED只用共享模式才能在还回(loopback)模式下起作用
@@ -91,6 +97,16 @@ void Audio::initAudio()
        qDebug() << (QString("Unable to set ready event: %1.\n").arg( hr));
        return ;
    }
+
+
+   hr = _AudioClient->GetBufferSize(&bufferFrameCount);
+   if (FAILED(hr))
+   {
+       qDebug() << (QString("Unable to GetBufferSize: %1.\n").arg( hr));
+       return;
+   }
+   qDebug() << "bufferFrameCount" << bufferFrameCount;
+
    //生成采集服务
    hr = _AudioClient->GetService(IID_PPV_ARGS(&_CaptureClient));
    if (FAILED(hr))
@@ -122,13 +138,35 @@ void Audio::record()
         delete []pBuffer;
    }
    pBuffer=new BYTE[MAX_AUDIO_FRAME_SIZE];
+   UINT32 buffer_len = 0;
 
+   REFERENCE_TIME hnsActualDuration = (double)REFTIMES_PER_SEC * bufferFrameCount / _MixFormat->nSamplesPerSec;
+   DWORD tmp_time = hnsActualDuration / REFTIMES_PER_MILLISEC / 2;
+
+
+   DWORD last_time = 0;
    recording = true;
-//   while (recording)
+   while (last_time <= 400)
    {
-       qDebug() << "recording!";
+       Sleep(tmp_time);
+       last_time += tmp_time;
+
+       qDebug() << last_time  << "recording!";
 //       DWORD waitResult = WaitForSingleObject(_AudioSamplesReadyEvent, INFINITE); //INFINITE应该是一直阻塞到读取到声音
-       WaitForSingleObject(_AudioSamplesReadyEvent, 500);
+//       WaitForSingleObject(_AudioSamplesReadyEvent, 3000);
+
+
+
+       UINT32 uiNextPacketSize(0);
+       hr = _CaptureClient->GetNextPacketSize(&uiNextPacketSize);
+       if (FAILED(hr))
+       {
+           qDebug() << "GetNextPacketSize FAILED!";
+           break;
+        }
+
+       while(uiNextPacketSize != 0){
+
        BYTE *pData = NULL;
 //       INT nBufferLenght = 0;
        UINT32 framesAvailable = 0;
@@ -147,16 +185,25 @@ void Audio::record()
                {
                    //Copy data from the audio engine buffer to the output buffer.
                    int nDataLen = framesAvailable*_FrameSize;
-                   CopyMemory(pBuffer,pData,nDataLen);
-                   qDebug() << QString("get capture audio len: %1: %2!\n").arg( nDataLen).arg(QString(QByteArray((char *)pBuffer, 5)));
-                   emit collectData(QByteArray((char *)pBuffer, nDataLen));
+                   qDebug() << QString("nDataLen: %1, framesAvailable %2, MAX_AUDIO_FRAME_SIZE: %3").arg(nDataLen).arg(framesAvailable).arg(MAX_AUDIO_FRAME_SIZE);
+                   CopyMemory(pBuffer + buffer_len,pData,nDataLen);
+                   qDebug() << QString("get capture audio len: %1: %2!\n").arg( nDataLen).arg(QString(QByteArray((char *)pBuffer+buffer_len, 5)));
+                   buffer_len += nDataLen;
+//                   emit collectData(QByteArray((char *)pBuffer, nDataLen));
 
                }
            }
        }
        _CaptureClient->ReleaseBuffer(framesAvailable);
+
+
+       hr = _CaptureClient->GetNextPacketSize(&uiNextPacketSize);
+       if (FAILED(hr))
+           break;
+       }
    }
 
+   emit collectData(QByteArray((char *)pBuffer, buffer_len));
    qDebug() << "recorded!";
 }
 

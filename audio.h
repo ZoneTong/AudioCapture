@@ -42,6 +42,7 @@ private:
     WAVEFORMATEX *      _MixFormat = NULL;
     HRESULT hr;
     size_t _FrameSize;
+    UINT bufferFrameCount;
 
 
 //    BYTE *pBuffer;

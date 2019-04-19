@@ -3,6 +3,8 @@
 #include <QVBoxLayout>
 #include <QDebug>
 #include <QFile>
+#include <QMessageBox>
+#include <QDataStream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -18,9 +20,10 @@ MainWindow::MainWindow(QWidget *parent) :
     record = false;
 
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), &audio, SLOT(record()));
-    connect(btnPlay, SIGNAL(pressed()), this, SLOT(startTimer()));
-    connect(btnPlay, SIGNAL(released()), this, SLOT(stopTimer()));
+    connect(btnPlay, SIGNAL(clicked(bool)), &audio, SLOT(record()));
+//    connect(timer, SIGNAL(timeout()), &audio, SLOT(record()));
+//    connect(btnPlay, SIGNAL(pressed()), this, SLOT(startTimer()));
+//    connect(btnPlay, SIGNAL(released()), this, SLOT(stopTimer()));
     connect(btnSave, SIGNAL(clicked(bool)), this, SLOT(savePCM()));
 }
 
@@ -49,9 +52,18 @@ void MainWindow::stopTimer()
 
 void MainWindow::savePCM()
 {
-    QFile *f = new QFile("D:/a.pcm");
-    f->writeData(pcm->data(), pcm->length());
-    f->close();
+    QFile f("D:/a.pcm");
+    if (!f.open(QIODevice::WriteOnly))
+    {
+        QMessageBox::warning(this,tr("警告"),tr("打开文件失败"));
+        return;
+    }
+    QDataStream out(&f);
+    out.setVersion(QDataStream::Qt_5_6);
+    out << *pcm;
+    qDebug() << "pcm size:" << pcm->length();
+//    f.(pcm->data(), pcm->length());
+    f.close();
 }
 
 void MainWindow::setupUI()
