@@ -1,1 +1,4 @@
 *.autosave
+.vscode
+build_debug.cmd
+debug
