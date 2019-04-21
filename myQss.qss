@@ -1,0 +1,33 @@
+/*RadioButton样式设置*/
+QRadioButton::indicator {
+    width: 17px;
+    height: 17px;
+}
+/*单选框未选中样式*/
+QRadioButton::indicator::unchecked {
+
+    image: url(:/ico/radiobutton-unchecked-md.png);
+}
+/*单选框选中样式*/
+QRadioButton::indicator::checked {
+    image: url(:/ico/radiobutton-checked-md.png);
+}
+/*RadioButton和checkbox字体和间距设置*/
+QRadioButton ,QCheckBox{
+    spacing: 5px;
+    font-size: 15px;
+}
+
+/*checkbox样式设置*/
+QCheckBox::indicator {
+    width: 26px;
+    height: 50px;
+}
+/*未选中*/
+QCheckBox::indicator::unchecked {
+    image: url(:/ico/check_off.png);
+}
+/*选中*/
+QCheckBox::indicator::checked {
+    image: url(:/ico/check_on.png);
+}

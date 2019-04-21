@@ -28,3 +28,7 @@ win32{
     DEFINES  += WIN32
     LIBS +=  -lOle32
 }
+
+DISTFILES += \
+    myQss.qss \
+    README.md

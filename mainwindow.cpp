@@ -1,10 +1,14 @@
 #include "mainwindow.h"
 //#include "audio.h"
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QDebug>
 #include <QFile>
 #include <QMessageBox>
 #include <QDataStream>
+#include <QRadioButton>
+#include <QCheckBox>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -87,12 +91,36 @@ void MainWindow::setupUI()
     lay_main->addWidget(btnPlay);
     lay_main->addWidget(txtEdit);
     lay_main->addStretch();
+
+    QHBoxLayout *radio_lay = new QHBoxLayout;
+    QCheckBox *radio_one = new QCheckBox("one");
+    QCheckBox *radio_two = new QCheckBox("two");
+
+
+    radio_lay->addWidget(radio_one);
+    radio_lay->addWidget(radio_two);
+
+    lay_main->addLayout(radio_lay);
+
     lay_main->addWidget(btnSave);
 
     setCentralWidget(win);
     this->setWindowTitle("Audio Capture");
     this->setFixedSize(300,600);
 
+
+
+    QString qss;
+   QFile qssFile(":/myQss.qss");
+   qssFile.open(QFile::ReadOnly);
+   if(qssFile.isOpen())
+   {
+     qss = QLatin1String(qssFile.readAll());
+     this->setStyleSheet(qss);
+     qssFile.close();
+   }
+
+//   setStyleSheet("");
 }
 
 
