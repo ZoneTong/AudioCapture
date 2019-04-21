@@ -23,6 +23,8 @@ Audio::~Audio()
 
 void Audio::initAudio()
 {
+#ifdef _WIN_COMPILE
+
     //初始化Com库
     CoUninitialize();
     hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
@@ -116,11 +118,15 @@ void Audio::initAudio()
    }
 
    startRecord();
+
+#endif
 }
 
 
 void Audio::startRecord()
 {
+
+#ifdef _WIN_COMPILE
    //开始采集
    qDebug() << "before _AudioClient Start!";
    hr = _AudioClient->Start();
@@ -130,6 +136,7 @@ void Audio::startRecord()
        qDebug() << (QString( "Unable to get new capture client: %1.\n").arg( hr));
        return;
    }
+#endif
 }
 
 void Audio::record()
@@ -137,9 +144,10 @@ void Audio::record()
    if (pBuffer != NULL){
         delete []pBuffer;
    }
-   pBuffer=new BYTE[MAX_AUDIO_FRAME_SIZE];
-   UINT32 buffer_len = 0;
+   pBuffer=new quint8[MAX_AUDIO_FRAME_SIZE];
 
+#ifdef _WIN_COMPILE
+   quint32 buffer_len = 0;
    REFERENCE_TIME hnsActualDuration = (double)REFTIMES_PER_SEC * bufferFrameCount / _MixFormat->nSamplesPerSec;
    DWORD tmp_time = hnsActualDuration / REFTIMES_PER_MILLISEC / 2;
 
@@ -205,6 +213,7 @@ void Audio::record()
 
    emit collectData(QByteArray((char *)pBuffer, buffer_len));
    qDebug() << "recorded!";
+#endif
 }
 
 void Audio::stopRecord()
@@ -213,14 +222,18 @@ void Audio::stopRecord()
 }
 
 void Audio::uninitAudio(){
+
     if (pBuffer != NULL){
          delete []pBuffer;
     }
+
+#ifdef _WIN_COMPILE
     SAFE_RELEASE(_DeviceEnumerator)
     SAFE_RELEASE(_Device)
     SAFE_RELEASE(_DeviceEnumerator)
     SAFE_RELEASE(_DeviceEnumerator)
     SAFE_RELEASE(_DeviceEnumerator)
     CoUninitialize();
+#endif
 }
 

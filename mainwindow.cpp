@@ -17,10 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     pcm = new QByteArray();
     connect(&audio, SIGNAL(collectData(QByteArray)), this, SLOT(appendText(QByteArray)));
-    record = false;
+    recording = false;
 
     timer = new QTimer(this);
-    connect(btnPlay, SIGNAL(clicked(bool)), &audio, SLOT(record()));
+    connect(btnPlay, SIGNAL(clicked(bool)), this, SLOT(playOrPause()));
 //    connect(timer, SIGNAL(timeout()), &audio, SLOT(record()));
 //    connect(btnPlay, SIGNAL(pressed()), this, SLOT(startTimer()));
 //    connect(btnPlay, SIGNAL(released()), this, SLOT(stopTimer()));
@@ -38,6 +38,16 @@ void MainWindow::appendText(QByteArray data)
 {
     txtEdit->append(data.mid(0, 20));
     pcm->append(data);
+}
+
+void MainWindow::playOrPause()
+{
+    if (recording) {
+        audio.stopRecord();
+    } else{
+        audio.startRecord();
+    }
+    recording = !recording;
 }
 
 void MainWindow::startTimer()

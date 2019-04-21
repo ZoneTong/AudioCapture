@@ -2,12 +2,21 @@
 #define AUDIO_H
 
 //windows下的CoreAudio技术
+#ifdef WIN32
+#define _WIN_COMPILE
+#endif
+
+
+#ifdef _WIN_COMPILE
 
 #include <Windows.h>
 #include <initguid.h>
 #include <MMDeviceAPI.h>
 #include <AudioClient.h> //WSAPI
 #include <AudioPolicy.h> //WSAPI
+
+#endif
+
 #include <QObject>
 
 
@@ -19,7 +28,7 @@ public:
     Audio();
     ~Audio();
 
-    BYTE *pBuffer = NULL;
+    quint8 *pBuffer = NULL;
 
     void initAudio();
     void uninitAudio();
@@ -30,10 +39,11 @@ signals:
 public slots:
     void record();
     void stopRecord();
-
-private:
     void startRecord();
 
+private:
+
+#ifdef _WIN_COMPILE
     IAudioClient *      _AudioClient = NULL;
     IAudioCaptureClient *_CaptureClient = NULL;
     IMMDevice * _Device = NULL;
@@ -43,7 +53,7 @@ private:
     HRESULT hr;
     size_t _FrameSize;
     UINT bufferFrameCount;
-
+#endif
 
 //    BYTE *pBuffer;
     bool recording;

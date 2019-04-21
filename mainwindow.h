@@ -24,6 +24,7 @@ public:
 
 private slots:
     void appendText(QByteArray data);
+    void playOrPause();
 
     void startTimer();
     void stopTimer();
@@ -37,7 +38,7 @@ private:
     QTextEdit *txtEdit;
     QPushButton *btnPlay;
     QPushButton *btnSave;
-    bool record;
+    bool recording;
     Audio audio;
 };
 
